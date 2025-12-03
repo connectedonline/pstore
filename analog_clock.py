@@ -1,47 +1,54 @@
-# analog_clock.py
-import turtle
+# ascii_clock.py
+import math
 import time
+import os
 
-def klok():
-    wn = turtle.Screen()
-    wn.title("Analoge klok")
-    wn.bgcolor("white")
-    wn.setup(width=600, height=600)
+def draw_clock(h, m, s):
+    size = 21  # diameter van de klok (moet oneven zijn)
+    radius = size // 2
+    canvas = [[" " for _ in range(size)] for _ in range(size)]
 
-    klok = turtle.Turtle()
-    klok.hideturtle()
-    klok.speed(0)
+    # klokrand
+    for deg in range(0, 360, 6):
+        x = int(radius + radius * math.cos(math.radians(deg)))
+        y = int(radius + radius * math.sin(math.radians(deg)))
+        if 0 <= x < size and 0 <= y < size:
+            canvas[y][x] = "o"
 
-    # Tekenen van klokcirkel
-    klok.penup()
-    klok.goto(0, -250)
-    klok.pendown()
-    klok.circle(250)
-
-    # Uurmarkeringen
+    # uurmarkeringen
     for i in range(12):
-        klok.penup()
-        klok.goto(0,0)
-        klok.setheading(90 - i*30)
-        klok.forward(220)
-        klok.pendown()
-        klok.forward(20)
+        angle = math.radians(90 - i * 30)
+        x = int(radius + (radius - 2) * math.cos(angle))
+        y = int(radius + (radius - 2) * math.sin(angle))
+        canvas[y][x] = str((i if i != 0 else 12))
 
-    # Wijzers
-    uur = turtle.Turtle()
-    minuut = turtle.Turtle()
-    seconde = turtle.Turtle()
-    for wijzer in (uur, minuut, seconde):
-        wijzer.shape("arrow")
-        wijzer.shapesize(stretch_wid=0.3, stretch_len=10)
-        wijzer.speed(0)
+    # wijzers
+    def plot(angle, length, char):
+        for r in range(1, length):
+            x = int(radius + r * math.cos(angle))
+            y = int(radius + r * math.sin(angle))
+            if 0 <= x < size and 0 <= y < size:
+                canvas[y][x] = char
 
+    # bereken hoeken
+    hour_angle = math.radians(90 - (h % 12) * 30 - m * 0.5)
+    min_angle = math.radians(90 - m * 6)
+    sec_angle = math.radians(90 - s * 6)
+
+    plot(hour_angle, radius - 6, "H")
+    plot(min_angle, radius - 3, "M")
+    plot(sec_angle, radius - 1, ".")
+
+    # klok printen
+    os.system("clear")  # gebruik "cls" op Windows
+    for row in canvas:
+        print("".join(row))
+
+def run():
     while True:
         t = time.localtime()
-        uur.setheading(90 - (t.tm_hour % 12) * 30 - t.tm_min * 0.5)
-        minuut.setheading(90 - t.tm_min * 6)
-        seconde.setheading(90 - t.tm_sec * 6)
-        wn.update()
+        draw_clock(t.tm_hour, t.tm_min, t.tm_sec)
+        time.sleep(1)
 
 if __name__ == "__main__":
-    klok()
+    run()
